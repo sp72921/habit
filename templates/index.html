@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block header %}
+<header class="container">
+  <nav>
+    <ul>
+      <li><strong>Habit</strong></li>
+    </ul>
+    <ul>
+      <li><a href="#">About</a></li>
+      <!-- <li><a href="/track">Track</a></li> -->
+    </ul>
+  </nav>
+</header>
+{% endblock %}
+
+{% block body %}
+<body class="container">
+  <h1>Habit Tracker</h1>
+  <a hx-get="/track" class="secondary" hx-swap="outerHTML">Add a habit</a>
+  <div id="content">
+    {% block content %}{% endblock %}
+  </div>
+  <div class="show-habits">
+    {% block habit %}{% endblock %}
+  </div>
+</body>
+{% endblock %}

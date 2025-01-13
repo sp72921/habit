@@ -1,0 +1,25 @@
+{% block content %}
+<form class="grid" action="/habit" method="post">
+    <details class="dropdown">
+      <summary
+        role="button"
+        class="secondary"
+        aria-label="helper">
+        Status
+      </summary>
+        <ul>
+          <li>Todo</li>
+          <li>Done</li>
+          <li>Postpone</li>
+        </ul>
+    </details>
+    <input
+      type="text"
+      name="habit"
+      placeholder="Enter a habit"
+      >
+  </label>
+  <input type="submit" value="Submit"/>
+</form>
+<small id="helper">Todo by default</small>
+{% endblock %}
