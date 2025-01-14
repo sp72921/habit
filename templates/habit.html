@@ -1,8 +1,14 @@
 {% block habit %}
 <hr />
 <article>
-  <b>{{ timestamp }}</b> <pre>{{ pattern }}</pre>
-  <mark>{{ label }}</mark> {{ habit }}
+  <h2><mark>{{ status }}</mark>
+    {% match priority %}
+      {% when Some with (Priority::None) %}
+      {% when Some with (val) %}<kbd>{{ val }}</kbd>
+      {% when None %}
+    {% endmatch %}
+    {{ habit }}</h2>
+  <b>{{ timestamp }}</b>
+  <pre>:PROPERTIES: {{ pattern }}</pre>
 </article>
-
 {% endblock %}

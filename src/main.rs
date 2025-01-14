@@ -23,6 +23,27 @@ enum Status {
     Postpone,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+enum Priority {
+    None,
+    A,
+    B,
+    C,
+    X,
+}
+
+impl std::fmt::Display for Priority {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Priority::None => write!(f, ""),
+            Priority::A => write!(f, "#A"),
+            Priority::B => write!(f, "#B"),
+            Priority::C => write!(f, "#C"),
+            Priority::X => write!(f, "#X"),
+        }
+    }
+}
+
 impl std::fmt::Display for Recur {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
@@ -48,6 +69,7 @@ struct CreateHabit {
     pattern: Option<Recur>,
     datetime: String,
     status: Option<Status>,
+    priority: Option<Priority>,
     habit: String,
 }
 
@@ -74,9 +96,10 @@ struct TrackTemplate;
 #[derive(Template)]
 #[template(path = "habit.html")]
 struct HabitTemplate<'a> {
+    status: Status,
+    priority: Option<Priority>,
     pattern: Recur,
     timestamp: DelayedFormat<StrftimeItems<'a>>,
-    label: Status,
     habit: String,
 }
 
@@ -106,6 +129,13 @@ async fn track() -> impl IntoResponse {
     HtmlTemplate(TrackTemplate {})
 }
 
+fn extract_value<T>(opt_value: Option<T>, default: T) -> T {
+    match opt_value {
+        Some(value) => value,
+        None => default,
+    }
+}
+
 async fn habit(Form(payload): Form<CreateHabit>) -> impl IntoResponse {
     // let local_time = DateTime::parse_from_rfc3339(&payload.datetime).unwrap();
     // let local_time = DateTime::from_timestamp_millis(payload.datetime).unwrap();
@@ -113,20 +143,15 @@ async fn habit(Form(payload): Form<CreateHabit>) -> impl IntoResponse {
         chrono::NaiveDateTime::parse_from_str(&payload.datetime, "%Y-%m-%dT%H:%M").unwrap();
     let local_format = local_time.format("%d/%m/%Y %H:%M");
 
-    let p = match payload.pattern {
-        Some(val) => val,
-        None => Recur::Daily,
-    };
-
-    let l = match payload.status {
-        Some(val) => val,
-        None => Status::Todo,
-    };
+    let p = extract_value(payload.pattern, Recur::Daily);
+    let pr = extract_value(payload.priority, Priority::None);
+    let l = extract_value(payload.status, Status::Todo);
 
     HtmlTemplate(HabitTemplate {
+        status: l,
+        priority: Some(pr),
         pattern: p,
-        timestamp: local_format,
-        label: l,
         habit: payload.habit,
+        timestamp: local_format,
     })
 }
