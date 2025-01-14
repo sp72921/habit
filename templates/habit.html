@@ -1,3 +1,8 @@
 {% block habit %}
-  <b>{{ timestamp }}</b> <i>{{ label }}</i> {{ habit }}
+<hr />
+<article>
+  <b>{{ timestamp }}</b> <pre>{{ pattern }}</pre>
+  <mark>{{ label }}</mark> {{ habit }}
+</article>
+
 {% endblock %}

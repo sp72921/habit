@@ -1,25 +1,34 @@
 {% block content %}
-<form class="grid" action="/habit" method="post">
-    <details class="dropdown">
-      <summary
-        role="button"
-        class="secondary"
-        aria-label="helper">
-        Status
-      </summary>
-        <ul>
-          <li>Todo</li>
-          <li>Done</li>
-          <li>Postpone</li>
-        </ul>
-    </details>
-    <input
-      type="text"
-      name="habit"
-      placeholder="Enter a habit"
-      >
-  </label>
+<form class="grid" hx-post="/habit" hx-swap="afterend">
+  <div class="ungrid">
+    <select id="pattern-select" name="pattern" aria-label="pattern-helper">
+      <option value="">Recurrence</option>
+      <option value="Daily">Daily</option>
+      <option value="Weekly">Weekly</option>
+      <option value="Monthly">Monthly</option>
+    </select>
+    <small id="helper"><mark>Daily</mark> by default</small>
+  </div>
+  
+  <input id="dateinput" type="datetime-local" name="datetime" aria-label="Datetime local">
+  
+  <div class="ungrid">
+    <select id="status-select" name="status" aria-label="status-helper">
+      <option value="">Status</option>
+      <option value="Todo">Todo</option>
+      <option value="Done">Done</option>
+      <option value="Postpone">Postpone</option>
+    </select>
+    <small id="status-helper"><mark>TODO</mark> by default</small>
+  </div>
+
+  <input
+    type="text"
+    name="habit"
+    placeholder="Enter a habit"
+    minlength="2"
+    maxlength="50"
+    >
   <input type="submit" value="Submit"/>
 </form>
-<small id="helper">Todo by default</small>
 {% endblock %}

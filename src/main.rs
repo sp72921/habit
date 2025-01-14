@@ -1,11 +1,11 @@
+use askama::Template;
 use axum::{
     http::StatusCode,
     response::{Html, IntoResponse, Response},
     routing::{get, post},
-    Form, Json, Router,
+    Form, Router,
 };
-use chrono::{serde::ts_seconds, DateTime, Local, Utc};
-use rinja::Template;
+use chrono::format::{DelayedFormat, StrftimeItems};
 use serde::{Deserialize, Serialize};
 use std::net::SocketAddr;
 
@@ -23,6 +23,16 @@ enum Status {
     Postpone,
 }
 
+impl std::fmt::Display for Recur {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Recur::Daily => write!(f, "|Daily|"),
+            Recur::Weekly => write!(f, "|Weekly|"),
+            Recur::Monthly => write!(f, "|Monthly|"),
+        }
+    }
+}
+
 impl std::fmt::Display for Status {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
@@ -35,8 +45,10 @@ impl std::fmt::Display for Status {
 
 #[derive(Debug, Deserialize)]
 struct CreateHabit {
+    pattern: Option<Recur>,
+    datetime: String,
+    status: Option<Status>,
     habit: String,
-    // pattern: Recur,
 }
 
 #[tokio::main]
@@ -59,14 +71,14 @@ struct Indextemplate;
 #[template(path = "track.html")]
 struct TrackTemplate;
 
-// #[derive(Template)]
-// #[template(path = "habit.html")]
-// struct HabitTemplate {
-//     timestamp: DateTime<Local>,
-//     label: Status,
-//     habit: String,
-//     // pattern: Recur,
-// }
+#[derive(Template)]
+#[template(path = "habit.html")]
+struct HabitTemplate<'a> {
+    pattern: Recur,
+    timestamp: DelayedFormat<StrftimeItems<'a>>,
+    label: Status,
+    habit: String,
+}
 
 struct HtmlTemplate<T>(T);
 
@@ -95,20 +107,26 @@ async fn track() -> impl IntoResponse {
 }
 
 async fn habit(Form(payload): Form<CreateHabit>) -> impl IntoResponse {
-    let local_time = Local::now();
-    let status = Status::Todo;
-    let habit = payload.habit;
-    // HtmlTemplate(HabitTemplate {
-    //     timestamp: local_time,
-    //     label: Status::Todo,
-    //     habit: payload.habit,
-    // })
+    // let local_time = DateTime::parse_from_rfc3339(&payload.datetime).unwrap();
+    // let local_time = DateTime::from_timestamp_millis(payload.datetime).unwrap();
+    let local_time =
+        chrono::NaiveDateTime::parse_from_str(&payload.datetime, "%Y-%m-%dT%H:%M").unwrap();
+    let local_format = local_time.format("%d/%m/%Y %H:%M");
 
-    Html(format!(
-        "<b>{local_time:?}</b> <i>{status:?}</i> {habit:?}</div>"
-    ))
-    .into_response();
+    let p = match payload.pattern {
+        Some(val) => val,
+        None => Recur::Daily,
+    };
 
-    // println!("{habit:#?}")
-    // (StatusCode::CREATED, Json(habit))
+    let l = match payload.status {
+        Some(val) => val,
+        None => Status::Todo,
+    };
+
+    HtmlTemplate(HabitTemplate {
+        pattern: p,
+        timestamp: local_format,
+        label: l,
+        habit: payload.habit,
+    })
 }
