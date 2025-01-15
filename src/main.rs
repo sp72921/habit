@@ -1,75 +1,34 @@
-use askama::Template;
 use axum::{
-    http::StatusCode,
-    response::{Html, IntoResponse, Response},
+    response::IntoResponse,
     routing::{get, post},
     Form, Router,
 };
-use chrono::format::{DelayedFormat, StrftimeItems};
 use serde::{Deserialize, Serialize};
-use std::net::SocketAddr;
+use std::{
+    net::SocketAddr,
+    sync::{Arc, Mutex},
+};
 
-#[derive(Debug, Serialize, Deserialize)]
-enum Recur {
-    Daily,
-    Weekly,
-    Monthly,
+mod models;
+mod templates;
+use crate::models::{Priority, Recur, Status};
+
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-enum Status {
-    Todo,
-    Done,
-    Postpone,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-enum Priority {
-    None,
-    A,
-    B,
-    C,
-    X,
 }
 
-impl std::fmt::Display for Priority {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Priority::None => write!(f, ""),
-            Priority::A => write!(f, "#A"),
-            Priority::B => write!(f, "#B"),
-            Priority::C => write!(f, "#C"),
-            Priority::X => write!(f, "#X"),
-        }
-    }
-}
-
-impl std::fmt::Display for Recur {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Recur::Daily => write!(f, "|Daily|"),
-            Recur::Weekly => write!(f, "|Weekly|"),
-            Recur::Monthly => write!(f, "|Monthly|"),
-        }
-    }
-}
-
-impl std::fmt::Display for Status {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Status::Todo => write!(f, "TODO"),
-            Status::Done => write!(f, "DONE"),
-            Status::Postpone => write!(f, "POSTPONE"),
         }
     }
 }
 
 #[derive(Debug, Deserialize)]
 struct CreateHabit {
-    pattern: Option<Recur>,
+    pattern: Recur,
     datetime: String,
-    status: Option<Status>,
-    priority: Option<Priority>,
+    status: Status,
+    priority: Priority,
     habit: String,
 }
 
@@ -85,55 +44,12 @@ async fn main() {
     axum::serve(listener, app).await.unwrap();
 }
 
-#[derive(Template)]
-#[template(path = "index.html")]
-struct Indextemplate;
-
-#[derive(Template)]
-#[template(path = "track.html")]
-struct TrackTemplate;
-
-#[derive(Template)]
-#[template(path = "habit.html")]
-struct HabitTemplate<'a> {
-    status: Status,
-    priority: Option<Priority>,
-    pattern: Recur,
-    timestamp: DelayedFormat<StrftimeItems<'a>>,
-    habit: String,
-}
-
-struct HtmlTemplate<T>(T);
-
-impl<T> IntoResponse for HtmlTemplate<T>
-where
-    T: Template,
-{
-    fn into_response(self) -> Response {
-        match self.0.render() {
-            Ok(html) => Html(html).into_response(),
-            Err(err) => (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                format!("Failed to render template. Error: {err}"),
-            )
-                .into_response(),
-        }
-    }
-}
-
 async fn index() -> impl IntoResponse {
-    HtmlTemplate(Indextemplate {})
+    templates::HtmlTemplate(templates::Indextemplate {})
 }
 
 async fn track() -> impl IntoResponse {
-    HtmlTemplate(TrackTemplate {})
-}
-
-fn extract_value<T>(opt_value: Option<T>, default: T) -> T {
-    match opt_value {
-        Some(value) => value,
-        None => default,
-    }
+    templates::HtmlTemplate(templates::TrackTemplate {})
 }
 
 async fn habit(Form(payload): Form<CreateHabit>) -> impl IntoResponse {
@@ -143,14 +59,10 @@ async fn habit(Form(payload): Form<CreateHabit>) -> impl IntoResponse {
         chrono::NaiveDateTime::parse_from_str(&payload.datetime, "%Y-%m-%dT%H:%M").unwrap();
     let local_format = local_time.format("%d/%m/%Y %H:%M");
 
-    let p = extract_value(payload.pattern, Recur::Daily);
-    let pr = extract_value(payload.priority, Priority::None);
-    let l = extract_value(payload.status, Status::Todo);
-
-    HtmlTemplate(HabitTemplate {
-        status: l,
-        priority: Some(pr),
-        pattern: p,
+    templates::HtmlTemplate(templates::HabitTemplate {
+        status: payload.status,
+        priority: Some(payload.priority),
+        pattern: payload.pattern,
         habit: payload.habit,
         timestamp: local_format,
     })
