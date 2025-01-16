@@ -12,8 +12,9 @@ use crate::models::{Priority, Recur, Status};
 pub struct Indextemplate;
 
 #[derive(Template)]
-#[template(path = "track.html")]
-pub struct TrackTemplate;
+#[template(path = "form.html")]
+pub struct FormTemplate;
+
 
 #[derive(Template)]
 #[template(path = "habit.html")]

@@ -36,8 +36,8 @@ struct CreateHabit {
 async fn main() {
     let app = Router::new()
         .route("/", get(index))
-        .route("/track", get(track))
-        .route("/habit", post(habit));
+        .route("/form", get(form))
+        .route("/habit", post(habit))
     let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
     let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
     println!("listening on http://{}", listener.local_addr().unwrap());
@@ -48,8 +48,10 @@ async fn index() -> impl IntoResponse {
     templates::HtmlTemplate(templates::Indextemplate {})
 }
 
-async fn track() -> impl IntoResponse {
-    templates::HtmlTemplate(templates::TrackTemplate {})
+async fn form() -> impl IntoResponse {
+    templates::HtmlTemplate(templates::FormTemplate {})
+}
+
 }
 
 async fn habit(Form(payload): Form<CreateHabit>) -> impl IntoResponse {

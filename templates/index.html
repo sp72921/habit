@@ -16,12 +16,14 @@
 
 {% block body %}
 <body class="container">
-  <h1>Habit Tracker</h1>
-  <a hx-get="/track" class="secondary" hx-swap="outerHTML">Add a habit</a>
+  <center>
+    <h1>Habit Tracker</h1>
+  </center>
+  <a hx-get="/form" class="secondary" hx-swap="outerHTML">Add a habit</a>
   <div id="content">
     {% block content %}{% endblock %}
   </div>
-  <div class="show-habits">
+  <div id="show-habits">
     {% block habit %}{% endblock %}
   </div>
 </body>
