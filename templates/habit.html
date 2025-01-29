@@ -1,21 +1,26 @@
 {% block habit %}
-<hr />
-<article>
-  <div>
-    <h2 style="display: inline"><mark>{{ status }}</mark>
+<div id="habit_block">
+  <hr />
+  <article>
+    <h2 style="display: inline"><mark id="current_status">{{ status }}</mark>
       {% match priority %}
       {% when Some with (Priority::None) %}
       {% when Some with (val) %}<kbd>{{ val }}</kbd>
       {% when None %}
       {% endmatch %}
-      {{ habit }}
+      <strong id="habit_text">{{ habit }}</strong>
       <span>
-        <button hx-get="/form/edit" hx-swap="outerHTML" class="primary" style="float: right; padding: 10px 15px;">Edit</button>
+        <button hx-patch="/form/edit/{{ id }}"
+                hx-target="closest #habit_block"
+                hx-swap="innerhtml"
+                class="primary"
+                style="float: right; padding: 10px 15px;">
+          Edit</button>
       </span>
     </h2>
-  </div>
-  <br />
-  <b>{{ timestamp }}</b>
-  <pre>:PROPERTIES: {{ pattern }}</pre>
-</article>
+    <br />
+    <b>{{ timestamp }}</b>
+    <pre>:PROPERTIES: {{ pattern }}&#10;&#13;:ID: {{ id }}
+  </article>
+</div>
 {% endblock %}

@@ -15,10 +15,18 @@ pub struct Indextemplate;
 #[template(path = "form.html")]
 pub struct FormTemplate;
 
+#[derive(Template)]
+#[template(path = "form-edit.html")]
+pub struct FormEditTemplate {
+    pub habit_uuid: uuid::Uuid,
+    pub status: Status,
+    pub habit: String,
+}
 
 #[derive(Template)]
 #[template(path = "habit.html")]
 pub struct HabitTemplate<'a> {
+    pub id: String,
     pub status: Status,
     pub priority: Option<Priority>,
     pub pattern: Recur,

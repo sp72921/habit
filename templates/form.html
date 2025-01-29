@@ -1,21 +1,24 @@
 {% block content %}
-<form hx-post="/habit" hx-swap="afterend">
+<form id="habit_form"
+      hx-post="/form" hx-swap="afterend"
+      hx-on::after-request="this.reset()">
   <div class="grid">
-  <input
-    type="text"
-    id="habit"
-    name="habit"
-    placeholder="Enter a habit"
-    minlength="2"
-    maxlength="50"
-    required
-    >
-  <input id="dateinput" type="datetime-local" name="datetime" aria-label="Datetime local" required>
+    <input
+      type="text"
+      id="habit"
+      name="habit"
+      placeholder="Enter a habit"
+      minlength="2"
+      maxlength="50"
+      required
+      >
+    <input id="dateinput" type="datetime-local" name="datetime" aria-label="Datetime local" required>
   </div>
 
   <div x-data="{ open: false }">
     <button class="secondary" type="button" @click="open = ! open">Customize</button>
     <div x-show="open" x-transition>
+      <input name="id" type="hidden" readonly/>
       <div class="grid">
         <div class="ungrid">
           <select id="pattern-select" name="pattern" aria-label="pattern-helper">
@@ -26,7 +29,7 @@
           </select>
           <small id="helper"><mark>Daily</mark> by default</small>
         </div>
-        
+
         <div class="ungrid">
           <select id="status-select" name="status" aria-label="status-helper">
             <option value="Todo">Status</option>

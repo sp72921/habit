@@ -1,0 +1,43 @@
+{% block edit %}
+<!-- TODO: ADD Alpine.js focus -->
+<article id="habit">
+  <form id="edit" hx-post="/habit" hx-target="closest #habit_block" hx-swap="outerhtml">
+    <select id="status-select" name="status" aria-label="status-helper">
+      <option value="{{ status }}">{{ status }}</option>
+      <option value="Todo">Todo</option>
+      <option value="Done">Done</option>
+      <option value="Postpone">Postpone</option>
+    </select>
+    <input
+      type="text"
+      id="habit"
+      name="habit"
+      value="{{ habit }}"
+      minlength="2"
+      maxlength="50"
+      required
+      >
+    <input id="dateinput" type="datetime-local" name="datetime" aria-label="Datetime local" required>
+
+    <select id="pattern-select" name="pattern">
+      <option value="Daily">Recurrence</option>
+      <option value="Daily">Daily</option>
+      <option value="Weekly">Weekly</option>
+      <option value="Monthly">Monthly</option>
+    </select>
+
+    <select id="priorty-select" name="priority">
+      <option value="None">Priority</option>
+      <option value="A">A</option>
+      <option value="B">B</option>
+      <option value="C">C</option>
+      <option value="X">X</option>
+    </select>
+
+    <input name="id" type="hidden" value="{{ habit_uuid }}" readonly/>
+
+    <button class="primary">Submit</button>
+    <!-- <button class="secondary" hx-get="/form">Cancel</button> -->
+  </form>
+</article>
+{% endblock %}

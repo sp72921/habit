@@ -1,30 +1,33 @@
 use axum::{
-    response::IntoResponse,
-    routing::{get, post},
-    Form, Router,
+    body::Body,
+    http::Request,
+    routing::{delete, get, patch, post},
+    Router,
 };
+use handlers::{form, habit, habit_delete, habit_edit, index};
 use serde::{Deserialize, Serialize};
 use std::{
+    collections::HashMap,
     net::SocketAddr,
-    sync::{Arc, Mutex},
+    sync::{Arc, RwLock},
 };
+use uuid::Uuid;
 
+mod handlers;
+mod init;
 mod models;
 mod templates;
 use crate::models::{Priority, Recur, Status};
 
+#[derive(Debug, Serialize)]
+// TODO
+struct Data {
+    date: String,
+    value: u64,
 }
 
-}
-
-}
-
-        }
-    }
-}
-
-#[derive(Debug, Deserialize)]
-struct CreateHabit {
+#[derive(Clone, Debug, Deserialize)]
+struct Habit {
     pattern: Recur,
     datetime: String,
     status: Status,
@@ -32,40 +35,37 @@ struct CreateHabit {
     habit: String,
 }
 
+#[derive(Clone, Debug, Deserialize)]
+struct UpdateTodo {
+    status: Option<Status>,
+    habit: Option<String>,
+}
+
+type Db = Arc<RwLock<HashMap<Uuid, Habit>>>;
+
 #[tokio::main]
 async fn main() {
+    init::logging();
+
+    let db = Db::default();
+
     let app = Router::new()
         .route("/", get(index))
-        .route("/form", get(form))
+        .route("/form", get(form).post(habit))
         .route("/habit", post(habit))
+        .route("/form/edit/:id", patch(habit_edit))
+        .route("/delete/:id", delete(habit_delete))
+        .layer(
+            tower_http::trace::TraceLayer::new_for_http()
+                .make_span_with(|_: &Request<Body>| tracing::info_span!("R"))
+                .on_request(init::on_request)
+                .on_response(init::on_response)
+                .on_failure(init::on_failure),
+        )
+        .with_state(db);
     let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
     let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
-    println!("listening on http://{}", listener.local_addr().unwrap());
+    tracing::info!("Server is starting...");
+    tracing::info!("Listening at http://{}", listener.local_addr().unwrap());
     axum::serve(listener, app).await.unwrap();
-}
-
-async fn index() -> impl IntoResponse {
-    templates::HtmlTemplate(templates::Indextemplate {})
-}
-
-async fn form() -> impl IntoResponse {
-    templates::HtmlTemplate(templates::FormTemplate {})
-}
-
-}
-
-async fn habit(Form(payload): Form<CreateHabit>) -> impl IntoResponse {
-    // let local_time = DateTime::parse_from_rfc3339(&payload.datetime).unwrap();
-    // let local_time = DateTime::from_timestamp_millis(payload.datetime).unwrap();
-    let local_time =
-        chrono::NaiveDateTime::parse_from_str(&payload.datetime, "%Y-%m-%dT%H:%M").unwrap();
-    let local_format = local_time.format("%d/%m/%Y %H:%M");
-
-    templates::HtmlTemplate(templates::HabitTemplate {
-        status: payload.status,
-        priority: Some(payload.priority),
-        pattern: payload.pattern,
-        habit: payload.habit,
-        timestamp: local_format,
-    })
 }

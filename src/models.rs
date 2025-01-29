@@ -1,20 +1,20 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Recur {
     Daily,
     Weekly,
     Monthly,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Status {
     Todo,
     Done,
     Postpone,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Priority {
     None,
     A,
@@ -48,9 +48,9 @@ impl std::fmt::Display for Recur {
 impl std::fmt::Display for Status {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Status::Todo => write!(f, "TODO"),
-            Status::Done => write!(f, "DONE"),
-            Status::Postpone => write!(f, "POSTPONE"),
+            Status::Todo => write!(f, "Todo"),
+            Status::Done => write!(f, "Done"),
+            Status::Postpone => write!(f, "Postpone"),
         }
     }
 }
